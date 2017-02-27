@@ -24,5 +24,11 @@ namespace MapSolver
         public bool HasLeft { get; set; }
         public bool HasRight { get; set; }
         public Tuple<int, int> Point { get; set; }
+        public List<Tuple<int, int>> ConnectedIntersections { get; set; }
+
+        public IntersectionPoint()
+        {
+            ConnectedIntersections = new List<Tuple<int, int>>();
+        }
     }
 }

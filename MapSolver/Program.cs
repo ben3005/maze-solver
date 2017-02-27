@@ -10,6 +10,7 @@ namespace MapSolver
         {
             MazeImageFactory mif = new MazeImageFactory();
             NaiveMazeImage mi = mif.CreateNaiveMaze(@"examples\tiny.png");
+            IntersectionMazeImage imi = mif.CreateIntersectionMaze(@"examples\tiny.png");
             MazeSolver ms = new MazeSolver();
             MazeSolutionWriter msw = new MazeSolutionWriter();
             Stopwatch s = new Stopwatch();
