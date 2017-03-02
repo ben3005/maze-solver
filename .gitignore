@@ -260,3 +260,4 @@ paket-files/
 __pycache__/
 *.pyc
 /MapSolver/solution.png
+/MapSolver/solution-intersection.png

@@ -9,8 +9,8 @@ namespace MapSolver
         static void Main(string[] args)
         {
             MazeImageFactory mif = new MazeImageFactory();
-            NaiveMazeImage mi = mif.CreateNaiveMaze(@"examples\tiny.png");
-            IntersectionMazeImage imi = mif.CreateIntersectionMaze(@"examples\tiny.png");
+            NaiveMazeImage mi = mif.CreateNaiveMaze(@"examples\perfect2k.png");
+            IntersectionMazeImage imi = mif.CreateIntersectionMaze(@"examples\perfect2k.png");
             MazeSolver ms = new MazeSolver();
             MazeSolutionWriter msw = new MazeSolutionWriter();
             Stopwatch s = new Stopwatch();
@@ -19,8 +19,17 @@ namespace MapSolver
             {
                 s.Stop();
                 Console.WriteLine("Found solution in: " + s.ElapsedMilliseconds + "ms");
-                msw.CreateSolutionImage(solution, @"examples\tiny.png");
+                msw.CreateSolutionImage(solution, @"examples\perfect2k.png");
             }
+            s.Reset();
+            s.Start();
+            if (ms.IntersectionSolve(imi, out Stack<IntersectionPoint> intSolution))
+            {
+                s.Stop();
+                Console.WriteLine("Found solution in: " + s.ElapsedMilliseconds + "ms");
+                msw.CreateSolutionImage(intSolution, @"examples\perfect2k.png");
+            }
+
             Console.ReadKey();
         }
     }

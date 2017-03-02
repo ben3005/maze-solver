@@ -6,8 +6,8 @@ namespace MapSolver
     public class IntersectionMazeImage
     {
         public List<List<IntersectionPoint>> Points { get; set; }
-        public Tuple<int, int> StartPoint { get; set; }
-        public Tuple<int, int> EndPoint { get; set; }
+        public IntersectionPoint StartPoint { get; set; }
+        public IntersectionPoint EndPoint { get; set; }
         public int MazeHeight { get; set; }
         public int MazeWidth { get; set; }
 

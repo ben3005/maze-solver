@@ -27,27 +27,25 @@ namespace MapSolver
                     {
                         if (j == 0)
                         {
-                            newMaze.StartPoint = new Tuple<int, int>(i, j);
-                            newMaze.Points[i].Add(new IntersectionPoint()
+                            newMaze.StartPoint = new IntersectionPoint()
                             {
                                 HasUpward = false,
                                 HasRight = false,
                                 HasDownward = true,
                                 HasLeft = false,
                                 Point = new Tuple<int, int>(i, j)
-                            });
+                            };
                         }
                         if (j == img.Height - 1)
                         {
-                            newMaze.EndPoint = new Tuple<int, int>(i, j);
-                            newMaze.Points[i].Add(new IntersectionPoint()
+                            newMaze.EndPoint = new IntersectionPoint()
                             {
-                                HasUpward = true,
+                                HasUpward = false,
                                 HasRight = false,
-                                HasDownward = false,
+                                HasDownward = true,
                                 HasLeft = false,
                                 Point = new Tuple<int, int>(i, j)
-                            });
+                            };
                         }
                         if (IsIntersection(i, j, img, out Tuple<bool, bool, bool, bool> directions))
                         {
@@ -87,12 +85,12 @@ namespace MapSolver
                     }
                 }
             }
-            var startConnector = newMaze.Points[newMaze.StartPoint.Item1].Where(j => j.Point.Item2 == newMaze.StartPoint.Item2 + 1).First();
-            startConnector.ConnectedIntersections.Add(newMaze.StartPoint);
-            newMaze.Points[newMaze.StartPoint.Item1].Where(j => j.Point.Equals(newMaze.StartPoint)).First().ConnectedIntersections.Add(startConnector.Point);
-            var endConnector = newMaze.Points[newMaze.EndPoint.Item1].Where(j => j.Point.Item2 == newMaze.EndPoint.Item2 - 1).First();
-            endConnector.ConnectedIntersections.Add(newMaze.EndPoint);
-            newMaze.Points[newMaze.EndPoint.Item1].Where(j => j.Point.Equals(newMaze.EndPoint)).First().ConnectedIntersections.Add(endConnector.Point);
+            var startConnector = newMaze.Points[newMaze.StartPoint.Point.Item1].Where(j => j.Point.Item2 > newMaze.StartPoint.Point.Item2).First();
+            startConnector.ConnectedIntersections.Add(newMaze.StartPoint.Point);
+            newMaze.StartPoint.ConnectedIntersections.Add(startConnector.Point);
+            var endConnector = newMaze.Points[newMaze.EndPoint.Point.Item1].Where(j => j.Point.Item2 < newMaze.EndPoint.Point.Item2).First();
+            endConnector.ConnectedIntersections.Add(newMaze.EndPoint.Point);
+            newMaze.EndPoint.ConnectedIntersections.Add(endConnector.Point);
             return newMaze;
         }
 

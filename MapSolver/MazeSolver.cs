@@ -6,9 +6,45 @@ namespace MapSolver
 {
     public class MazeSolver
     {
-        public bool IntersectionSolve(IntersectionMazeImage maze, out Stack<Tuple<int, int>> route)
+        public bool IntersectionSolve(IntersectionMazeImage maze, out Stack<IntersectionPoint> route)
         {
-            throw new NotImplementedException();
+            bool hasFoundRoute = false;
+            bool hasSeenAllSquares = false;
+            IntersectionPoint currentSquare = maze.StartPoint;
+            bool[,] visitedSquares = new bool[maze.MazeHeight, maze.MazeWidth];
+            Stack<IntersectionPoint> currentRoute = new Stack<IntersectionPoint>();
+            currentRoute.Push(maze.StartPoint);
+            while (!hasFoundRoute && !hasSeenAllSquares)
+            {
+                bool hasNextSquare = GetNextSquare(maze, currentSquare, visitedSquares, out IntersectionPoint nextSquare);
+                if (hasNextSquare)
+                {
+                    if (currentRoute.Count > 0 && !currentRoute.First().Equals(currentSquare))
+                    {
+                        currentRoute.Push(currentSquare);
+                    }
+                    currentRoute.Push(nextSquare);
+                    visitedSquares[nextSquare.Point.Item1, nextSquare.Point.Item2] = true;
+                    currentSquare = nextSquare;
+                    if (nextSquare.Equals(maze.EndPoint))
+                    {
+                        hasFoundRoute = true;
+                    }
+                }
+                else
+                {
+                    hasSeenAllSquares = CheckAllVisitedSquares(visitedSquares, maze);
+                    currentSquare = currentRoute.Pop();
+                }
+            }
+
+            if (hasFoundRoute)
+            {
+                route = currentRoute;
+                return true;
+            }
+            route = null;
+            return true;
         }
 
         public bool NaiveSolve(NaiveMazeImage maze, out Stack<Tuple<int, int>> route)
@@ -67,6 +103,25 @@ namespace MapSolver
             return true;
         }
 
+        private bool CheckAllVisitedSquares(bool[,] visitedSquares, IntersectionMazeImage maze)
+        {
+            bool hasFoundUnvisited = false;
+            maze.Points.ForEach(i =>
+            {
+                i.ForEach(j =>
+                {
+                    if (!visitedSquares[j.Point.Item1, j.Point.Item2]) {
+                        hasFoundUnvisited = true;
+                    }
+                });
+            });
+            if (!visitedSquares[maze.EndPoint.Point.Item1, maze.EndPoint.Point.Item2])
+            {
+                hasFoundUnvisited = true;
+            }
+            return !hasFoundUnvisited;
+        }
+
         private bool GetNextSquare(NaiveMazeImage maze, Tuple<int, int> currentSquare, bool[,] visitedSquares, out Tuple<int, int> NextSquare)
         {
             //Move Up
@@ -97,16 +152,22 @@ namespace MapSolver
             return false;
         }
 
-        private bool GetNextSquare(IntersectionMazeImage maze, Tuple<int, int> currentSquare, bool[,] visitedSquares, out Tuple<int, int> NextSquare)
+        private bool GetNextSquare(IntersectionMazeImage maze, IntersectionPoint currentSquare, bool[,] visitedSquares, out IntersectionPoint NextSquare)
         {
-            //Move Up
-            
-            //Move Right
-            
-            //Move Down
-
-            //Move Left
-
+            if (currentSquare.ConnectedIntersections.Exists(point => !visitedSquares[point.Item1, point.Item2]))
+            {
+                var nextLocation = currentSquare.ConnectedIntersections.Where(point => !visitedSquares[point.Item1, point.Item2]).First();
+                if (maze.Points.Exists(i => i.Exists(j => j.Point.Equals(nextLocation))))
+                {
+                    NextSquare = maze.Points.Where(i => i.Exists(j => j.Point.Equals(nextLocation))).First().Where(j => j.Point.Equals(nextLocation)).First();
+                    return true;
+                }
+                if (maze.EndPoint.Point.Equals(nextLocation))
+                {
+                    NextSquare = maze.EndPoint;
+                    return true;
+                }
+            }
             NextSquare = null;
             return false;
         }
