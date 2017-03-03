@@ -85,10 +85,10 @@ namespace MapSolver
                     }
                 }
             }
-            var startConnector = newMaze.Points[newMaze.StartPoint.Point.Item1].Where(j => j.Point.Item2 > newMaze.StartPoint.Point.Item2).First();
+            var startConnector = newMaze.Points[newMaze.StartPoint.Point.Item1].Where(j => j.Point.Item2 > newMaze.StartPoint.Point.Item2).OrderBy(p => p.Point.Item2).First();
             startConnector.ConnectedIntersections.Add(newMaze.StartPoint.Point);
             newMaze.StartPoint.ConnectedIntersections.Add(startConnector.Point);
-            var endConnector = newMaze.Points[newMaze.EndPoint.Point.Item1].Where(j => j.Point.Item2 < newMaze.EndPoint.Point.Item2).First();
+            var endConnector = newMaze.Points[newMaze.EndPoint.Point.Item1].Where(j => j.Point.Item2 < newMaze.EndPoint.Point.Item2).OrderBy(p => p.Point.Item2).Last();
             endConnector.ConnectedIntersections.Add(newMaze.EndPoint.Point);
             newMaze.EndPoint.ConnectedIntersections.Add(endConnector.Point);
             return newMaze;
