@@ -65,17 +65,9 @@ namespace MapSolver
             IntersectionPoint currentSquare = maze.StartPoint;
             Stack<IntersectionPoint> currentRoute = new Stack<IntersectionPoint>();
             currentRoute.Push(maze.StartPoint);
-            int backtrackCount = 0;
-            List<long> getNextTimes = new List<long>();
-            List<long> checkAllVisitedTimes = new List<long>();
-            Stopwatch s = new Stopwatch();
             while (!hasFoundRoute && !hasSeenAllSquares)
             {
-                s.Start();
                 bool hasNextSquare = GetNextSquareDepth(maze, currentSquare, out IntersectionPoint nextSquare);
-                s.Stop();
-                getNextTimes.Add(s.ElapsedMilliseconds);
-                s.Reset();
                 if (hasNextSquare)
                 {
                     if (currentRoute.Count > 0 && !currentRoute.First().Equals(currentSquare))
@@ -83,8 +75,8 @@ namespace MapSolver
                         currentRoute.Push(currentSquare);
                     }
                     currentRoute.Push(nextSquare);
+                    maze.TotalVisited++;
                     nextSquare.HasVisited = true;
-                    // visitedSquares[nextSquare.Point.Item1, nextSquare.Point.Item2] = true;
                     currentSquare = nextSquare;
                     if (nextSquare.Equals(maze.EndPoint))
                     {
@@ -94,20 +86,11 @@ namespace MapSolver
                 }
                 else
                 {
-                    s.Start();
                     hasSeenAllSquares = CheckAllVisitedSquares(maze);
-                    s.Stop();
-                    checkAllVisitedTimes.Add(s.ElapsedMilliseconds);
-                    s.Reset();
                     currentSquare = currentRoute.Pop();
-                    backtrackCount++;
+                    maze.TotalVisited--;
                 }
             }
-            Console.WriteLine("Intersection Backtracks: " + backtrackCount);
-            Console.WriteLine("Intersection Get Count " + getNextTimes.Count);
-            Console.WriteLine("Intersection Total Get Time " + getNextTimes.Sum());
-            Console.WriteLine("Intersection Check Visited Count" + checkAllVisitedTimes.Count);
-            Console.WriteLine("Intersection Check Visited Total Time" + checkAllVisitedTimes.Sum());
             if (hasFoundRoute)
             {
                 route = currentRoute;
@@ -125,16 +108,9 @@ namespace MapSolver
             bool[,] visitedSquares = new bool[maze.MazeHeight, maze.MazeWidth];
             Stack<Tuple<int, int>> currentRoute = new Stack<Tuple<int, int>>();
             currentRoute.Push(maze.StartPoint);
-            int backtrackCount = 0;
-            Stopwatch s = new Stopwatch();
-            List<long> getNextTimes = new List<long>();
             while (!hasFoundRoute && !hasSeenAllSquares)
             {
-                s.Start();
                 bool hasNextSquare = GetNextSquare(maze, currentSquare, visitedSquares, out Tuple<int, int> nextSquare);
-                s.Stop();
-                getNextTimes.Add(s.ElapsedMilliseconds);
-                s.Reset();
                 if (hasNextSquare)
                 {
                     if (currentRoute.Count > 0 && !currentRoute.First().Equals(currentSquare))
@@ -151,14 +127,10 @@ namespace MapSolver
                 }
                 else
                 {
-                    backtrackCount++;
                     hasSeenAllSquares = CheckAllVisitedSquares(visitedSquares);
                     currentSquare = currentRoute.Pop();
                 }
             }
-            Console.WriteLine("Naive Backtracks: " + backtrackCount);
-            Console.WriteLine("Naive Get Count " + getNextTimes.Count);
-            Console.WriteLine("Naive Total Get Time " + getNextTimes.Sum());
             if (hasFoundRoute)
             {
                 route = currentRoute;
@@ -185,14 +157,9 @@ namespace MapSolver
 
         private bool CheckAllVisitedSquares(IntersectionMazeImage maze)
         {
-            IntersectionPoint point;
-            for (int i = 0; i < maze.Points.Length; i++)
+            if (maze.TotalVisited < maze.Points.Count())
             {
-                point = maze.Points[i];
-                if (!point.HasVisited)
-                {
-                    return false;
-                }
+                return false;
             }
             if (!maze.EndPoint.HasVisited)
             {

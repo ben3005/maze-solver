@@ -111,80 +111,52 @@ namespace MapSolver
             IntersectionPoint[] previousIIntersection = new IntersectionPoint[img.Width];
             IntersectionPoint previousJIntersection = null;
             List<IntersectionPoint> newMazePoints = new List<IntersectionPoint>();
+            Color currentPixel;
+            bool hasSetStartConnector = false;
+            IntersectionPoint lastSeenEndConnector = new IntersectionPoint();
             for (int i = 0; i < img.Width; i++)
+            {
+                currentPixel = img.GetPixel(i, 0);
+                if (IsPixelSpace(currentPixel))
+                {
+                    newMaze.StartPoint = new IntersectionPoint()
+                    {
+                        HasUpward = false,
+                        HasRight = false,
+                        HasDownward = true,
+                        HasLeft = false,
+                        Point = new Tuple<int, int>(i, 0)
+                    };
+                }
+                currentPixel = img.GetPixel(i, img.Height - 1);
+                if (IsPixelSpace(currentPixel))
+                {
+                    newMaze.EndPoint = new IntersectionPoint()
+                    {
+                        HasUpward = false,
+                        HasRight = false,
+                        HasDownward = true,
+                        HasLeft = false,
+                        Point = new Tuple<int, int>(i, img.Height - 1)
+                    };
+                }
+                if (newMaze.StartPoint != null && newMaze.EndPoint != null)
+                {
+                    break;
+                }
+            }
+
+            for (int i = 1; i < img.Width - 1; i++)
             {
                 newMaze.ISections[i] = newMazePoints.Count;
                 for (int j = 0; j < img.Height; j++)
                 {
-                    Color pixel = img.GetPixel(i, j);
-                    if (IsPixelSpace(pixel))
+                    currentPixel = img.GetPixel(i, j);
+                    if (IsPixelSpace(currentPixel))
                     {
-                        if (j == 0)
-                        {
-                            newMaze.StartPoint = new IntersectionPoint()
-                            {
-                                HasUpward = false,
-                                HasRight = false,
-                                HasDownward = true,
-                                HasLeft = false,
-                                Point = new Tuple<int, int>(i, j)
-                            };
-                        }
-                        if (j == img.Height - 1)
-                        {
-                            newMaze.EndPoint = new IntersectionPoint()
-                            {
-                                HasUpward = false,
-                                HasRight = false,
-                                HasDownward = true,
-                                HasLeft = false,
-                                Point = new Tuple<int, int>(i, j)
-                            };
-                        }
                         if (IsIntersection(i, j, img, out Tuple<bool, bool, bool, bool> directions))
                         {
                             List<IntersectionPoint> connectedIntersections = new List<IntersectionPoint>();
-                            if (!hasSeenWallInJ)
-                            {
-                                connectedIntersections.Add(previousJIntersection);
-                                var startI = newMaze.ISections[previousJIntersection.Point.Item1];
-                                IntersectionPoint cachedPoint = new IntersectionPoint();
-                                for (int localI = startI; localI < newMazePoints.Count; localI++)
-                                {
-                                    cachedPoint = newMazePoints[localI];
-                                    if (cachedPoint.Point.Item1 != previousJIntersection.Point.Item1)
-                                    {
-                                        break;
-                                    }
-                                    if (cachedPoint.Point.Item2 == previousJIntersection.Point.Item2)
-                                    {
-                                        cachedPoint.ConnectedIntersections.Add(cachedPoint);
-                                        break;
-                                    }
-                                }
-                            }
-                            if (!hasSeenWallInI[j])
-                            {
-                                connectedIntersections.Add(previousIIntersection[j]);
-                                if (previousIIntersection[j] != null)
-                                {
-                                    var startI = newMaze.ISections[previousIIntersection[j].Point.Item1];
-                                    IntersectionPoint cachedPoint = new IntersectionPoint();
-                                    for (int localI = startI; localI < newMazePoints.Count; localI++)
-                                    {
-                                        cachedPoint = newMazePoints[localI];
-                                        if (cachedPoint.Point.Item1 != previousIIntersection[j].Point.Item1)
-                                        {
-                                            break;
-                                        }
-                                        if (cachedPoint.Point.Item2 == previousIIntersection[j].Point.Item2)
-                                        {
-                                            cachedPoint.ConnectedIntersections.Add(cachedPoint);
-                                            break;
-                                        }
-                                    }
-                                }
-                            }
                             var currentPoint = new IntersectionPoint()
                             {
                                 HasUpward = directions.Item1,
@@ -192,9 +164,32 @@ namespace MapSolver
                                 HasDownward = directions.Item3,
                                 HasLeft = directions.Item4,
                                 HasVisited = false,
-                                Point = new Tuple<int, int>(i, j),
-                                ConnectedIntersections = connectedIntersections
+                                Point = new Tuple<int, int>(i, j)
                             };
+                            if (!hasSetStartConnector && i == newMaze.StartPoint.Point.Item1)
+                            {
+                                hasSetStartConnector = true;
+                                newMaze.StartPoint.ConnectedIntersections.Add(currentPoint);
+                                connectedIntersections.Add(newMaze.StartPoint);
+                            }
+                            if (i == newMaze.EndPoint.Point.Item1)
+                            {
+                                lastSeenEndConnector = currentPoint;
+                            }
+                            if (!hasSeenWallInJ)
+                            {
+                                connectedIntersections.Add(previousJIntersection);
+                                previousJIntersection.ConnectedIntersections.Add(currentPoint);
+                            }
+                            if (!hasSeenWallInI[j])
+                            {
+                                if (previousIIntersection[j] != null)
+                                {
+                                    connectedIntersections.Add(previousIIntersection[j]);
+                                    previousIIntersection[j].ConnectedIntersections.Add(currentPoint);
+                                }
+                            }
+                            currentPoint.ConnectedIntersections = connectedIntersections;
                             newMazePoints.Add(currentPoint);
                             hasSeenWallInJ = false;
                             hasSeenWallInI[j] = false;
@@ -209,32 +204,8 @@ namespace MapSolver
                     }
                 }
             }
-            IntersectionPoint startConnector = new IntersectionPoint();
-            IntersectionPoint endConnector = new IntersectionPoint();
-            var startPointI = newMaze.ISections[newMaze.StartPoint.Point.Item1];
-            var endPointI = newMaze.ISections[newMaze.EndPoint.Point.Item1];
-
-            for (int i = startPointI; i < newMazePoints.Count; i++)
-            {
-                if (newMazePoints[i].Point.Item1 != newMaze.StartPoint.Point.Item1)
-                {
-                    break;
-                }
-                startConnector = newMazePoints[i];
-                break;
-            }
-            for (int i = newMazePoints.Count - 1; i >= endPointI; i--)
-            {
-                if (newMazePoints[i].Point.Item1 == newMaze.EndPoint.Point.Item1)
-                {
-                    endConnector = newMazePoints[i];
-                    break;
-                }
-            }
-            startConnector.ConnectedIntersections.Add(newMaze.StartPoint);
-            newMaze.StartPoint.ConnectedIntersections.Add(startConnector);
-            endConnector.ConnectedIntersections.Add(newMaze.EndPoint);
-            newMaze.EndPoint.ConnectedIntersections.Add(endConnector);
+            lastSeenEndConnector.ConnectedIntersections.Add(newMaze.EndPoint);
+            newMaze.EndPoint.ConnectedIntersections.Add(lastSeenEndConnector);
             newMaze.Points = newMazePoints.ToArray();
             return newMaze;
         }

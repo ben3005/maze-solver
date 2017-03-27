@@ -11,12 +11,14 @@ namespace MapSolver
         public IntersectionPoint EndPoint { get; set; }
         public int MazeHeight { get; set; }
         public int MazeWidth { get; set; }
+        public int TotalVisited { get; set; }
 
         public IntersectionMazeImage(int width, int height)
         {
             MazeHeight = height;
             MazeWidth = width;
             ISections = new int[width];
+            TotalVisited = 0;
         }
     }
 
