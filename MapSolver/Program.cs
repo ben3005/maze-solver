@@ -10,33 +10,51 @@ namespace MapSolver
         const string BRAID200 = @"examples\braid200.png";
         const string TWOK = @"examples\perfect2k.png";
         const string FOURK = @"examples\perfect4k.png";
+        const string COMBO400 = @"examples\combo400.png";
+        static readonly string mazeToRun = TWOK;
+        static MazeImageFactory mif = new MazeImageFactory();
+        static Stopwatch s = new Stopwatch();
+        static MazeSolutionWriter msw = new MazeSolutionWriter();
+        static MazeSolver ms = new MazeSolver();
 
         static void Main(string[] args)
         {
-            MazeImageFactory mif = new MazeImageFactory();
-            NaiveMazeImage mi = mif.CreateNaiveMaze(BRAID200);
-            IntersectionMazeImage imi = mif.CreateIntersectionMaze(BRAID200);
-            MazeSolver ms = new MazeSolver();
-            MazeSolutionWriter msw = new MazeSolutionWriter();
-            Stopwatch s = new Stopwatch();
+            // SolveNaive();
+            SolveIntersection();
+            Console.ReadKey();
+            Console.ReadKey();
+            Console.ReadKey();
+            Console.ReadKey();
+        }
+
+        static void SolveNaive()
+        {
+            NaiveMazeImage mi = mif.CreateNaiveMaze(mazeToRun);
             s.Start();
             if (ms.NaiveSolve(mi, out Stack<Tuple<int, int>> solution))
             {
                 s.Stop();
                 Console.WriteLine("Found solution in: " + s.ElapsedMilliseconds + "ms");
-                msw.CreateSolutionImage(solution, BRAID200);
+                msw.CreateSolutionImage(solution, mazeToRun);
+            }
+            if (s.IsRunning)
+            {
+                s.Stop();
             }
             s.Reset();
-            Console.WriteLine("Created maze image");
+        }
+
+        static void SolveIntersection()
+        {
+            IntersectionMazeImage imi = mif.CreateIntersectionMaze(mazeToRun);
             s.Start();
             if (ms.IntersectionSolve(imi, out Stack<IntersectionPoint> intSolution))
             {
                 s.Stop();
                 Console.WriteLine("Found solution in: " + s.ElapsedMilliseconds + "ms");
-                msw.CreateSolutionImage(intSolution, BRAID200);
+                msw.CreateSolutionImage(intSolution, mazeToRun);
             }
-
-            Console.ReadKey();
+            s.Stop();
         }
     }
 }

@@ -5,15 +5,18 @@ namespace MapSolver
 {
     public class IntersectionMazeImage
     {
-        public List<List<IntersectionPoint>> Points { get; set; }
+        public IntersectionPoint[] Points { get; set; }
+        public int[] ISections { get; set; }
         public IntersectionPoint StartPoint { get; set; }
         public IntersectionPoint EndPoint { get; set; }
         public int MazeHeight { get; set; }
         public int MazeWidth { get; set; }
 
-        public IntersectionMazeImage()
+        public IntersectionMazeImage(int width, int height)
         {
-            Points = new List<List<IntersectionPoint>>();
+            MazeHeight = height;
+            MazeWidth = width;
+            ISections = new int[width];
         }
     }
 
@@ -23,12 +26,13 @@ namespace MapSolver
         public bool HasDownward { get; set; }
         public bool HasLeft { get; set; }
         public bool HasRight { get; set; }
+        public bool HasVisited { get; set; }
         public Tuple<int, int> Point { get; set; }
-        public List<Tuple<int, int>> ConnectedIntersections { get; set; }
+        public List<IntersectionPoint> ConnectedIntersections { get; set; }
 
         public IntersectionPoint()
         {
-            ConnectedIntersections = new List<Tuple<int, int>>();
+            ConnectedIntersections = new List<IntersectionPoint>();
         }
     }
 }

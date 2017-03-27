@@ -7,21 +7,72 @@ namespace MapSolver
 {
     public class MazeSolver
     {
+        //public bool IntersectionSolve(AStarIntersectionMazeImage maze, out Stack<AStarIntersectionPoint> route)
+        //{
+        //    bool hasFoundRoute = false;
+        //    bool hasSeenAllSquares = false;
+        //    AStarIntersectionPoint currentSquare = maze.StartPoint;
+        //    bool[,] visitedSquares = new bool[maze.MazeHeight, maze.MazeWidth];
+        //    Stack<AStarIntersectionPoint> currentRoute = new Stack<AStarIntersectionPoint>();
+        //    currentRoute.Push(maze.StartPoint);
+        //    int backtrackCount = 0;
+        //    List<long> getNextTimes = new List<long>();
+        //    Stopwatch s = new Stopwatch();
+        //    while (!hasFoundRoute && !hasSeenAllSquares)
+        //    {
+        //        s.Start();
+        //        bool hasNextSquare = GetNextSquareAStar(maze, currentSquare, visitedSquares, out AStarIntersectionPoint nextSquare);
+        //        s.Stop();
+        //        getNextTimes.Add(s.ElapsedMilliseconds);
+        //        s.Reset();
+        //        if (hasNextSquare)
+        //        {
+        //            if (currentRoute.Count > 0 && !currentRoute.First().Equals(currentSquare))
+        //            {
+        //                currentRoute.Push(currentSquare);
+        //            }
+        //            currentRoute.Push(nextSquare);
+        //            visitedSquares[nextSquare.Point.Item1, nextSquare.Point.Item2] = true;
+        //            currentSquare = nextSquare;
+        //            if (nextSquare.Equals(maze.EndPoint))
+        //            {
+        //                hasFoundRoute = true;
+        //            }
+        //        }
+        //        else
+        //        {
+        //            hasSeenAllSquares = CheckAllVisitedSquares(visitedSquares, maze);
+        //            currentSquare = currentRoute.Pop();
+        //            backtrackCount++;
+        //        }
+        //    }
+        //    Console.WriteLine("AStarIntersection Backtracks: " + backtrackCount);
+        //    Console.WriteLine("AStarIntersection Average Get Speed " + getNextTimes.Average() + "ms");
+        //    Console.WriteLine("AStarIntersection Get Count " + getNextTimes.Count);
+        //    if (hasFoundRoute)
+        //    {
+        //        route = currentRoute;
+        //        return true;
+        //    }
+        //    route = null;
+        //    return true;
+        //}
         public bool IntersectionSolve(IntersectionMazeImage maze, out Stack<IntersectionPoint> route)
         {
             bool hasFoundRoute = false;
             bool hasSeenAllSquares = false;
+            maze.StartPoint.HasVisited = true;
             IntersectionPoint currentSquare = maze.StartPoint;
-            bool[,] visitedSquares = new bool[maze.MazeHeight, maze.MazeWidth];
             Stack<IntersectionPoint> currentRoute = new Stack<IntersectionPoint>();
             currentRoute.Push(maze.StartPoint);
             int backtrackCount = 0;
             List<long> getNextTimes = new List<long>();
+            List<long> checkAllVisitedTimes = new List<long>();
             Stopwatch s = new Stopwatch();
             while (!hasFoundRoute && !hasSeenAllSquares)
             {
                 s.Start();
-                bool hasNextSquare = GetNextSquareDepth(maze, currentSquare, visitedSquares, out IntersectionPoint nextSquare);
+                bool hasNextSquare = GetNextSquareDepth(maze, currentSquare, out IntersectionPoint nextSquare);
                 s.Stop();
                 getNextTimes.Add(s.ElapsedMilliseconds);
                 s.Reset();
@@ -32,23 +83,31 @@ namespace MapSolver
                         currentRoute.Push(currentSquare);
                     }
                     currentRoute.Push(nextSquare);
-                    visitedSquares[nextSquare.Point.Item1, nextSquare.Point.Item2] = true;
+                    nextSquare.HasVisited = true;
+                    // visitedSquares[nextSquare.Point.Item1, nextSquare.Point.Item2] = true;
                     currentSquare = nextSquare;
                     if (nextSquare.Equals(maze.EndPoint))
                     {
+                        maze.EndPoint.HasVisited = true;
                         hasFoundRoute = true;
                     }
                 }
                 else
                 {
-                    hasSeenAllSquares = CheckAllVisitedSquares(visitedSquares, maze);
+                    s.Start();
+                    hasSeenAllSquares = CheckAllVisitedSquares(maze);
+                    s.Stop();
+                    checkAllVisitedTimes.Add(s.ElapsedMilliseconds);
+                    s.Reset();
                     currentSquare = currentRoute.Pop();
                     backtrackCount++;
                 }
             }
             Console.WriteLine("Intersection Backtracks: " + backtrackCount);
-            Console.WriteLine("Intersection Average Get Speed " + getNextTimes.Average() + "ms");
             Console.WriteLine("Intersection Get Count " + getNextTimes.Count);
+            Console.WriteLine("Intersection Total Get Time " + getNextTimes.Sum());
+            Console.WriteLine("Intersection Check Visited Count" + checkAllVisitedTimes.Count);
+            Console.WriteLine("Intersection Check Visited Total Time" + checkAllVisitedTimes.Sum());
             if (hasFoundRoute)
             {
                 route = currentRoute;
@@ -98,8 +157,8 @@ namespace MapSolver
                 }
             }
             Console.WriteLine("Naive Backtracks: " + backtrackCount);
-            Console.WriteLine("Naive Average Get Speed " + getNextTimes.Average() + "ms");
             Console.WriteLine("Naive Get Count " + getNextTimes.Count);
+            Console.WriteLine("Naive Total Get Time " + getNextTimes.Sum());
             if (hasFoundRoute)
             {
                 route = currentRoute;
@@ -124,19 +183,18 @@ namespace MapSolver
             return true;
         }
 
-        private bool CheckAllVisitedSquares(bool[,] visitedSquares, IntersectionMazeImage maze)
+        private bool CheckAllVisitedSquares(IntersectionMazeImage maze)
         {
-            foreach (var i in maze.Points)
+            IntersectionPoint point;
+            for (int i = 0; i < maze.Points.Length; i++)
             {
-                foreach (var j in i)
+                point = maze.Points[i];
+                if (!point.HasVisited)
                 {
-                    if (!visitedSquares[j.Point.Item1, j.Point.Item2])
-                    {
-                        return false;
-                    }
+                    return false;
                 }
             }
-            if (!visitedSquares[maze.EndPoint.Point.Item1, maze.EndPoint.Point.Item2])
+            if (!maze.EndPoint.HasVisited)
             {
                 return false;
             }
@@ -173,18 +231,15 @@ namespace MapSolver
             return false;
         }
 
-        private bool GetNextSquareDepth(IntersectionMazeImage maze, IntersectionPoint currentSquare, bool[,] visitedSquares, out IntersectionPoint NextSquare)
+        private bool GetNextSquareDepth(IntersectionMazeImage maze, IntersectionPoint currentSquare, out IntersectionPoint NextSquare)
         {
-            Tuple<int, int> nextLocation = null;
+            IntersectionPoint nextLocation = null;
             NextSquare = null;
-            foreach (var intersection in currentSquare.ConnectedIntersections)
+            IntersectionPoint intersection = new IntersectionPoint();
+            for (int i = 0; i < currentSquare.ConnectedIntersections.Count; i++)
             {
-                if (intersection.Item2 > currentSquare.Point.Item2 && !visitedSquares[intersection.Item1, intersection.Item2])
-                {
-                    nextLocation = intersection;
-                    break;
-                }
-                if (!visitedSquares[intersection.Item1, intersection.Item2])
+                intersection = currentSquare.ConnectedIntersections[i];
+                if (!intersection.HasVisited)
                 {
                     nextLocation = intersection;
                     break;
@@ -192,19 +247,13 @@ namespace MapSolver
             }
             if (nextLocation != null)
             {
-                if (maze.EndPoint.Point.Equals(nextLocation))
+                if (maze.EndPoint.Equals(nextLocation))
                 {
                     NextSquare = maze.EndPoint;
                     return true;
                 }
-                foreach (var j in maze.Points[nextLocation.Item1])
-                {
-                    if (j.Point.Equals(nextLocation))
-                    {
-                        NextSquare = j;
-                        return true;
-                    }
-                }
+                NextSquare = nextLocation;
+                return true;
             }
             return false;
         }
