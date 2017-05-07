@@ -24,12 +24,9 @@ namespace MapSolver
 
     public class IntersectionPoint
     {
-        public bool HasUpward { get; set; }
-        public bool HasDownward { get; set; }
-        public bool HasLeft { get; set; }
-        public bool HasRight { get; set; }
         public bool HasVisited { get; set; }
-        public Tuple<int, int> Point { get; set; }
+        public int ICoord { get; set; }
+        public int JCoord { get; set; }
         public List<IntersectionPoint> ConnectedIntersections { get; set; }
 
         public IntersectionPoint()

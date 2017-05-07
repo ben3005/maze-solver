@@ -24,40 +24,40 @@ namespace MapSolver
             while (solution.Count > 0)
             {
                 var step = solution.Pop();
-                img.SetPixel(step.Point.Item1, step.Point.Item2, Color.Yellow);
+                img.SetPixel(step.ICoord, step.JCoord, Color.Yellow);
                 if (previous != null)
                 {
-                    if (previous.Point.Item1 != step.Point.Item1)
+                    if (previous.ICoord != step.ICoord)
                     {
-                        if (previous.Point.Item1 > step.Point.Item1)
+                        if (previous.ICoord > step.ICoord)
                         {
-                            for (int i = step.Point.Item1 + 1; i < previous.Point.Item1; i++)
+                            for (int i = step.ICoord + 1; i < previous.ICoord; i++)
                             {
-                                img.SetPixel(i, step.Point.Item2, Color.Green);
+                                img.SetPixel(i, step.JCoord, Color.Green);
                             }
                         }
-                        else if (previous.Point.Item1 < step.Point.Item1)
+                        else if (previous.ICoord < step.ICoord)
                         {
-                            for (int i = previous.Point.Item1 + 1; i < step.Point.Item1; i++)
+                            for (int i = previous.ICoord + 1; i < step.ICoord; i++)
                             {
-                                img.SetPixel(i, step.Point.Item2, Color.Green);
+                                img.SetPixel(i, step.JCoord, Color.Green);
                             }
                         }
                     }
-                    else if (previous.Point.Item2 != step.Point.Item2)
+                    else if (previous.JCoord != step.JCoord)
                     {
-                        if (previous.Point.Item2 > step.Point.Item2)
+                        if (previous.JCoord > step.JCoord)
                         {
-                            for (int j = step.Point.Item2 + 1; j < previous.Point.Item2; j++)
+                            for (int j = step.JCoord + 1; j < previous.JCoord; j++)
                             {
-                                img.SetPixel(step.Point.Item1, j, Color.Green);
+                                img.SetPixel(step.ICoord, j, Color.Green);
                             }
                         }
-                        else if (previous.Point.Item2 < step.Point.Item2)
+                        else if (previous.JCoord < step.JCoord)
                         {
-                            for (int j = previous.Point.Item2 + 1; j < step.Point.Item2; j++)
+                            for (int j = previous.JCoord + 1; j < step.JCoord; j++)
                             {
-                                img.SetPixel(step.Point.Item1, j, Color.Green);
+                                img.SetPixel(step.ICoord, j, Color.Green);
                             }
                         }
                     }

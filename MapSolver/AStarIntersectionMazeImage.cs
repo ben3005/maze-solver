@@ -20,10 +20,6 @@ namespace MapSolver
 
     public class AStarIntersectionPoint
     {
-        public bool HasUpward { get; set; }
-        public bool HasDownward { get; set; }
-        public bool HasLeft { get; set; }
-        public bool HasRight { get; set; }
         public Tuple<int, int> Point { get; set; }
         public double Weighting { get; set; }
         public List<Tuple<int, int>> ConnectedIntersections { get; set; }
