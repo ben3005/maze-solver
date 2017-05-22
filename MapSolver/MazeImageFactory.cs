@@ -103,7 +103,6 @@ namespace MapSolver
             Color currentPixel;
             bool hasSetStartConnector = false;
             IntersectionPoint lastSeenEndConnector = new IntersectionPoint();
-            List<IntersectionPoint> connectedIntersections;
             List<long> times = new List<long>();
             Stopwatch s = new Stopwatch();
             IntersectionPoint currentPoint;
@@ -151,28 +150,33 @@ namespace MapSolver
                                 ICoord = i,
                                 JCoord = j
                             };
-                            if (!hasSetStartConnector && i == newMaze.StartPoint.ICoord)
-                            {
-                                hasSetStartConnector = true;
-                            }
                             if (i == newMaze.EndPoint.ICoord)
                             {
                                 lastSeenEndConnector = currentPoint;
                             }
-                            currentPoint.ConnectedIntersections = CreateConnectedIntersections(
-                                newMaze,
-                                hasSeenWallInJ,
-                                hasSeenWallInI,
-                                previousIIntersection,
-                                previousJIntersection,
-                                newMazePoints,
-                                hasSetStartConnector,
-                                currentPoint,
-                                i,
-                                j
-                            ).ToList();
+                            if (!hasSetStartConnector && i == newMaze.StartPoint.ICoord)
+                            {
+                                newMaze.StartPoint.ConnectedIntersections.Add(currentPoint);
+                                currentPoint.ConnectedIntersections.Add(newMaze.StartPoint);
+                            }
+                            if (!hasSeenWallInJ)
+                            {
+                                previousJIntersection.ConnectedIntersections.Add(currentPoint);
+                                currentPoint.ConnectedIntersections.Add(previousJIntersection);
+                            }
+                            if (!hasSeenWallInI[j])
+                            {
+                                if (previousIIntersection[j] != null)
+                                {
+                                    previousIIntersection[j].ConnectedIntersections.Add(currentPoint);
+                                    currentPoint.ConnectedIntersections.Add(previousIIntersection[j]);
+                                }
+                            }
+                            newMazePoints.Add(currentPoint);
                             hasSeenWallInJ = false;
+                            hasSeenWallInI[j] = false;
                             previousJIntersection = currentPoint;
+                            previousIIntersection[j] = currentPoint;
                         }
                     }
                     else
@@ -191,41 +195,6 @@ namespace MapSolver
             newMaze.EndPoint.ConnectedIntersections.Add(lastSeenEndConnector);
             newMaze.Points = newMazePoints.ToArray();
             return newMaze;
-        }
-
-        private static IEnumerable<IntersectionPoint> CreateConnectedIntersections(
-            IntersectionMazeImage newMaze,
-            bool hasSeenWallInJ,
-            bool[] hasSeenWallInI,
-            IntersectionPoint[] previousIIntersection,
-            IntersectionPoint previousJIntersection,
-            List<IntersectionPoint> newMazePoints,
-            bool hasSetStartConnector,
-            IntersectionPoint currentPoint,
-            int i,
-            int j)
-        {
-            if (!hasSetStartConnector && i == newMaze.StartPoint.ICoord)
-            {
-                newMaze.StartPoint.ConnectedIntersections.Add(currentPoint);
-                yield return newMaze.StartPoint;
-            }
-            if (!hasSeenWallInJ)
-            {
-                previousJIntersection.ConnectedIntersections.Add(currentPoint);
-                yield return previousJIntersection;
-            }
-            if (!hasSeenWallInI[j])
-            {
-                if (previousIIntersection[j] != null)
-                {
-                    previousIIntersection[j].ConnectedIntersections.Add(currentPoint);
-                    yield return previousIIntersection[j];
-                }
-            }
-            newMazePoints.Add(currentPoint);
-            hasSeenWallInI[j] = false;
-            previousIIntersection[j] = currentPoint;
         }
 
         private bool IsIntersection(int i, int j, Bitmap img)
