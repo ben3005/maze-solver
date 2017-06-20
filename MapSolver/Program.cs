@@ -1,20 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+// ReSharper disable UnusedMember.Local
 
 namespace MapSolver
 {
     class Program
     {
-        const string TINY = @"examples\tiny.png";
-        const string SMALL = @"examples\small.png";
-        const string NORMAL = @"examples\normal.png";
-        const string BRAID200 = @"examples\braid200.png";
-        const string TWOK = @"examples\perfect2k.png";
-        const string FOURK = @"examples\perfect4k.png";
-        const string COMBO400 = @"examples\combo400.png";
-        static readonly string mazeToRun = FOURK;
+        private const string TINY = @"examples\tiny.png";
+        private const string SMALL = @"examples\small.png";
+        private const string NORMAL = @"examples\normal.png";
+        private const string BRAID200 = @"examples\braid200.png";
+        private const string TWOK = @"examples\perfect2k.png";
+        private const string FOURK = @"examples\perfect4k.png";
+        private const string COMBO400 = @"examples\combo400.png";
+        private const string MAZE_TO_RUN = FOURK;
         static MazeImageFactory mif = new MazeImageFactory();
+        static IntersectionMazeImageFactory imif = new IntersectionMazeImageFactory();
         static Stopwatch s = new Stopwatch();
         static MazeSolutionWriter msw = new MazeSolutionWriter();
         static MazeSolver ms = new MazeSolver();
@@ -29,7 +31,7 @@ namespace MapSolver
         static void SolveNaive()
         {
             s.Start();
-            NaiveMazeImage mi = mif.CreateNaiveMaze(mazeToRun);
+            var mi = mif.CreateNaiveMaze(MAZE_TO_RUN);
             s.Stop();
             Console.WriteLine("Created maze representation in: " + s.ElapsedMilliseconds + "ms");
             s.Reset();
@@ -38,7 +40,7 @@ namespace MapSolver
             {
                 s.Stop();
                 Console.WriteLine("Found solution in: " + s.ElapsedMilliseconds + "ms");
-                msw.CreateSolutionImage(solution, mazeToRun);
+                msw.CreateSolutionImage(solution, MAZE_TO_RUN);
             }
             if (s.IsRunning)
             {
@@ -50,7 +52,7 @@ namespace MapSolver
         static void SolveIntersection()
         {
             s.Start();
-            IntersectionMazeImage imi = mif.CreateIntersectionMaze(mazeToRun);
+            var imi = imif.CreateIntersectionMaze(MAZE_TO_RUN);
             s.Stop();
             Console.WriteLine("Created maze representation in: " + s.ElapsedMilliseconds + "ms");
             s.Reset();
@@ -59,7 +61,7 @@ namespace MapSolver
             {
                 s.Stop();
                 Console.WriteLine("Found solution in: " + s.ElapsedMilliseconds + "ms");
-                msw.CreateSolutionImage(intSolution, mazeToRun);
+                msw.CreateSolutionImage(intSolution, MAZE_TO_RUN);
             }
             s.Stop();
         }

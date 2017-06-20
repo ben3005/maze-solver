@@ -8,7 +8,7 @@ namespace MapSolver
     {
         public void CreateSolutionImage(Stack<Tuple<int, int>> solution, string mazeFile)
         {
-            Bitmap img = new Bitmap(mazeFile);
+            var img = new Bitmap(mazeFile);
             while (solution.Count > 0)
             {
                 var step = solution.Pop();
@@ -19,7 +19,7 @@ namespace MapSolver
 
         public void CreateSolutionImage(Stack<IntersectionPoint> solution, string mazeFile)
         {
-            Bitmap img = new Bitmap(mazeFile);
+            var img = new Bitmap(mazeFile);
             IntersectionPoint previous = null;
             while (solution.Count > 0)
             {
@@ -31,14 +31,14 @@ namespace MapSolver
                     {
                         if (previous.ICoord > step.ICoord)
                         {
-                            for (int i = step.ICoord + 1; i < previous.ICoord; i++)
+                            for (var i = step.ICoord + 1; i < previous.ICoord; i++)
                             {
                                 img.SetPixel(i, step.JCoord, Color.Green);
                             }
                         }
                         else if (previous.ICoord < step.ICoord)
                         {
-                            for (int i = previous.ICoord + 1; i < step.ICoord; i++)
+                            for (var i = previous.ICoord + 1; i < step.ICoord; i++)
                             {
                                 img.SetPixel(i, step.JCoord, Color.Green);
                             }
@@ -48,14 +48,14 @@ namespace MapSolver
                     {
                         if (previous.JCoord > step.JCoord)
                         {
-                            for (int j = step.JCoord + 1; j < previous.JCoord; j++)
+                            for (var j = step.JCoord + 1; j < previous.JCoord; j++)
                             {
                                 img.SetPixel(step.ICoord, j, Color.Green);
                             }
                         }
                         else if (previous.JCoord < step.JCoord)
                         {
-                            for (int j = previous.JCoord + 1; j < step.JCoord; j++)
+                            for (var j = previous.JCoord + 1; j < step.JCoord; j++)
                             {
                                 img.SetPixel(step.ICoord, j, Color.Green);
                             }
