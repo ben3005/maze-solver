@@ -96,7 +96,7 @@ namespace MapSolver
                 return true;
             }
             route = null;
-            return true;
+            return false;
         }
 
         public bool NaiveSolve(NaiveMazeImage maze, out Stack<Tuple<int, int>> route)
@@ -136,7 +136,7 @@ namespace MapSolver
                 return true;
             }
             route = null;
-            return true;
+            return false;
         }
 
         private bool CheckAllVisitedSquares(bool[,] visitedSquares)

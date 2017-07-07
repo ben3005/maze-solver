@@ -6,14 +6,12 @@ namespace MapSolver
     {
         public IntersectionPoint[] Points { get; set; }
         // ReSharper disable once InconsistentNaming
-        public int[] ISections { get; }
         public IntersectionPoint StartPoint { get; set; }
         public IntersectionPoint EndPoint { get; set; }
         public int TotalVisited { get; set; }
 
-        public IntersectionMazeImage(int width, int height)
+        public IntersectionMazeImage()
         {
-            ISections = new int[width];
             TotalVisited = 0;
         }
     }

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 
@@ -10,14 +9,13 @@ namespace MapSolver
     {
         public IntersectionMazeImage CreateIntersectionMaze(string filePath)
         {
-            var s = new Stopwatch();
-            s.Start();
             var img = new Bitmap(filePath);
+            PixelFormat pixelFormat = img.PixelFormat;
             // Lock the bitmap's bits.  
             var rect = new Rectangle(0, 0, img.Width, img.Height);
-            BitmapData bmpData = img.LockBits(rect, ImageLockMode.ReadWrite, img.PixelFormat);
+            BitmapData bmpData = img.LockBits(rect, ImageLockMode.ReadWrite, pixelFormat);
 
-            var newMaze = new IntersectionMazeImage(img.Width, img.Height);
+            var newMaze = new IntersectionMazeImage();
             var hasSeenWallInJ = false;
             var hasSeenWallInI = new bool[img.Width];
             var previousIIntersection = new IntersectionPoint[img.Width];
@@ -25,8 +23,7 @@ namespace MapSolver
             var newMazePoints = new List<IntersectionPoint>();
             var hasSetStartConnector = false;
             var lastSeenEndConnector = new IntersectionPoint();
-            
-
+            IntersectionPoint currentPoint;
             // Get the address of the first line.
             IntPtr ptr = bmpData.Scan0;
 
@@ -37,26 +34,22 @@ namespace MapSolver
             // Copy the RGB values into the array.
             System.Runtime.InteropServices.Marshal.Copy(ptr, rgbValues, 0, bytes);
 
-            if (img.PixelFormat != PixelFormat.Format1bppIndexed && img.PixelFormat != PixelFormat.Format32bppArgb)
-            {
-                throw new SystemException("Image format not supported, supports: Format1bppIndexed");
-            }
 
-            for (var i = 0; i < img.Width; i++)
+            for (var index = 0; index < img.Width; index++)
             {
-                if (BitmapReader.IsPixel(i, 0, ref rgbValues, img.PixelFormat, bmpData.Stride))
+                if (BitmapReader.IsPixel(index, 0, ref rgbValues, pixelFormat, bmpData.Stride))
                 {
                     newMaze.StartPoint = new IntersectionPoint()
                     {
-                        ICoord = i,
+                        ICoord = index,
                         JCoord = 0
                     };
                 }
-                if (BitmapReader.IsPixel(i, img.Height - 1, ref rgbValues, img.PixelFormat, bmpData.Stride))
+                if (BitmapReader.IsPixel(index, img.Height - 1, ref rgbValues, pixelFormat, bmpData.Stride))
                 {
                     newMaze.EndPoint = new IntersectionPoint()
                     {
-                        ICoord = i,
+                        ICoord = index,
                         JCoord = img.Height - 1
                     };
                 }
@@ -70,65 +63,69 @@ namespace MapSolver
             {
                 throw new Exception("Could not find start and endpoint");
             }
-
-            for (var i = 1; i < img.Width - 1; i++)
+            var i = 1;
+            var j = 0;
+            var height = img.Height;
+            var width = img.Width - 1;
+            var hasSquares = true;
+            while (hasSquares)
             {
-                newMaze.ISections[i] = newMazePoints.Count;
-                for (var j = 0; j < img.Height; j++)
+                if (BitmapReader.IsPixel(i, j, ref rgbValues, pixelFormat, bmpData.Stride))
                 {
-                    if (BitmapReader.IsPixel(i, j, ref rgbValues, img.PixelFormat, bmpData.Stride))
+                    if (IsIntersection(i, j, ref rgbValues, pixelFormat, bmpData.Stride, img.Width, img.Height))
                     {
-                        if (IsIntersection(i, j, ref rgbValues, img.PixelFormat, bmpData.Stride, img.Width, img.Height))
+                        currentPoint = new IntersectionPoint()
                         {
-                            var currentPoint = new IntersectionPoint()
-                            {
-                                HasVisited = false,
-                                ICoord = i,
-                                JCoord = j
-                            };
-                            if (!hasSetStartConnector && i == newMaze.StartPoint.ICoord)
-                            {
-                                hasSetStartConnector = true;
-                                newMaze.StartPoint.ConnectedIntersections.Add(currentPoint);
-                                currentPoint.ConnectedIntersections.Add(newMaze.StartPoint);
-                            }
-                            if (i == newMaze.EndPoint.ICoord)
-                            {
-                                lastSeenEndConnector = currentPoint;
-                            }
-                            if (!hasSeenWallInJ)
-                            {
-                                currentPoint.ConnectedIntersections.Add(previousJIntersection);
-                                previousJIntersection.ConnectedIntersections.Add(currentPoint);
-                            }
-                            if (!hasSeenWallInI[j])
-                            {
-                                if (previousIIntersection[j] != null)
-                                {
-                                    currentPoint.ConnectedIntersections.Add(previousIIntersection[j]);
-                                    previousIIntersection[j].ConnectedIntersections.Add(currentPoint);
-                                }
-                            }
-                            newMazePoints.Add(currentPoint);
-                            hasSeenWallInJ = false;
-                            hasSeenWallInI[j] = false;
-                            previousJIntersection = currentPoint;
-                            previousIIntersection[j] = currentPoint;
+                            HasVisited = false,
+                            ICoord = i,
+                            JCoord = j
+                        };
+                        if (!hasSetStartConnector && i == newMaze.StartPoint.ICoord)
+                        {
+                            hasSetStartConnector = true;
+                            newMaze.StartPoint.ConnectedIntersections.Add(currentPoint);
+                            currentPoint.ConnectedIntersections.Add(newMaze.StartPoint);
                         }
-                    }
-                    else
-                    {
-                        hasSeenWallInJ = true;
-                        hasSeenWallInI[j] = true;
+                        if (i == newMaze.EndPoint.ICoord)
+                        {
+                            lastSeenEndConnector = currentPoint;
+                        }
+                        if (!hasSeenWallInJ)
+                        {
+                            currentPoint.ConnectedIntersections.Add(previousJIntersection);
+                            previousJIntersection.ConnectedIntersections.Add(currentPoint);
+                        }
+                        if (!hasSeenWallInI[j] && previousIIntersection[j] != null)
+                        {
+                            currentPoint.ConnectedIntersections.Add(previousIIntersection[j]);
+                            previousIIntersection[j].ConnectedIntersections.Add(currentPoint);
+                        }
+                        newMazePoints.Add(currentPoint);
+                        hasSeenWallInJ = false;
+                        hasSeenWallInI[j] = false;
+                        previousJIntersection = currentPoint;
+                        previousIIntersection[j] = currentPoint;
                     }
                 }
+                else
+                {
+                    hasSeenWallInJ = true;
+                    hasSeenWallInI[j] = true;
+                }
+                j++;
+                if (j >= height)
+                {
+                    i++;
+                    j = 0;
+                }
+                if (i >= width)
+                {
+                    hasSquares = false;
+                }
             }
-
             lastSeenEndConnector.ConnectedIntersections.Add(newMaze.EndPoint);
             newMaze.EndPoint.ConnectedIntersections.Add(lastSeenEndConnector);
             newMaze.Points = newMazePoints.ToArray();
-            s.Stop();
-            Console.WriteLine("total work " + s.ElapsedMilliseconds + "ms");
             return newMaze;
         }
 
